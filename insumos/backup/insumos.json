@@ -1,0 +1,158 @@
+{
+  "estilete": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "estilete",
+    "saldo": 2040
+  },
+  "etq-termica-100x100": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "etiqueta térmica branca 100x100",
+    "prioridade": 2,
+    "saldo": 277
+  },
+  "etq-termica-100x150": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "etiqueta térmica branca 100x150",
+    "prioridade": 1,
+    "saldo": 89
+  },
+  "fita-adesiva": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "fita adesiva",
+    "prioridade": 5,
+    "saldo": 1625
+  },
+  "fita-antiderrapante": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "fita antiderrapante",
+    "saldo": 80
+  },
+  "fita-dem-amarela": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "fita demarcação amarela",
+    "saldo": 108
+  },
+  "fita-dem-azul": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "fita demarcação azul",
+    "saldo": 157
+  },
+  "fita-dem-branca": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "fita demarcação branca",
+    "saldo": 159
+  },
+  "fita-dem-laranja": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "fita demarcação laranja",
+    "saldo": 28
+  },
+  "fita-dem-marrom": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "fita demarcação marrom",
+    "saldo": 6
+  },
+  "fita-dem-verde": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "fita demarcação verde",
+    "saldo": 135
+  },
+  "fita-dem-vermelha": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "fita demarcação vermelha",
+    "saldo": 140
+  },
+  "fita-dem-zebrada": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "fita demarcação zebrada",
+    "saldo": 90
+  },
+  "fita-transp-personalizada": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "fita adesiva transparente personalizada",
+    "saldo": 288
+  },
+  "fita-zebrada-solo": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "fita zebrada de solo",
+    "saldo": 37
+  },
+  "gaylord": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "gaylord",
+    "prioridade": 4,
+    "saldo": 53
+  },
+  "lacre": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "lacre",
+    "saldo": 25400
+  },
+  "plastico-bolha": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "plástico-bolha",
+    "saldo": 9
+  },
+  "ribbon": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "ribbon",
+    "saldo": 781
+  },
+  "sacas-rafia": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "sacas de ráfia transparentes",
+    "saldo": 94590
+  },
+  "shipping-100x100": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "etiqueta shipping label 100x100",
+    "saldo": 704
+  },
+  "shipping-100x150": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "etiqueta shipping label 100x150",
+    "saldo": 339
+  },
+  "stretch-paredao": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "stretch — paredão",
+    "saldo": 4480
+  },
+  "stretch": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "stretch",
+    "prioridade": 3,
+    "saldo": 4522
+  },
+  "sulfite-a4": {
+    "ativo": true,
+    "minimo": 0,
+    "nome": "sulfite A4 branca",
+    "saldo": 200,
+    "unidade": "pacotes"
+  }
+}

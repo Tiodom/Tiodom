@@ -1,0 +1,26 @@
+{
+  "2b7h2c4t6elqdv4kwcv8": {
+    "insumoId": "etq-termica-100x100",
+    "qtd": 3,
+    "quem": "Diegorocha",
+    "tipo": "saida",
+    "ts": 1792780494123,
+    "turno": "T2"
+  },
+  "386hr7lh8g80zraigubk": {
+    "insumoId": "gaylord",
+    "qtd": 10,
+    "quem": "Diegorocha",
+    "tipo": "saida",
+    "ts": 1792780815965,
+    "turno": "T2"
+  },
+  "zzu70vifhsb029l28hwi": {
+    "insumoId": "etq-termica-100x150",
+    "qtd": 2,
+    "quem": "Diegorocha",
+    "tipo": "saida",
+    "ts": 1792384126337,
+    "turno": "T2"
+  }
+}

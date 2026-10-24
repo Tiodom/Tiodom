@@ -1,0 +1,386 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Controle de Insumos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#ffe600">
+<style>
+/* Layout: app de coletor — faixa amarela fixa no topo com turno e saldo crítico, lista de toque grande, navegação no rodapé ao alcance do polegar.
+   Tema claro único e de alto contraste, pensado para luz de galpão e tela de handheld. Fontes nativas do Android (Roboto) para abrir rápido na rede do CD. */
+:root{
+  color-scheme:light;
+  --brand:#ffe600;      /* faixa do topo */
+  --brand-ink:#1c1f2a;
+  --accent:#2968c8;     /* ações e foco */
+  --accent-ink:#ffffff;
+  --ink:#16191f;
+  --muted:#5c6170;
+  --bg:#eceef2;
+  --surface:#ffffff;
+  --line:#d6d9e0;
+  --ok:#0e7a3f;  --ok-soft:#dcf2e5;
+  --warn:#9a5b00; --warn-soft:#fdeccb;
+  --bad:#c0261c; --bad-soft:#fbe0dd;
+  --font:Roboto,"Roboto Flex",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  --font-cond:"Roboto Condensed","Arial Narrow",Roboto,system-ui,sans-serif;
+  --font-num:"Roboto Mono",ui-monospace,"Segoe UI Mono",Menlo,monospace;
+  --r:12px;
+  --tap:56px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.4;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--brand)}
+.wrap{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* topo */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--brand);color:var(--brand-ink);box-shadow:0 1px 0 rgba(0,0,0,.08)}
+.top{display:flex;align-items:center;gap:12px;padding-block:10px}
+.mark{flex:none;width:40px;height:40px;border-radius:10px;background:var(--brand-ink);color:var(--brand);display:grid;place-items:center;font-family:var(--font-cond);font-weight:700;font-size:1.05rem;letter-spacing:.02em}
+.ttl{min-width:0;flex:1}
+.ttl h1{margin:0;font-family:var(--font-cond);font-weight:700;font-size:1.3rem;line-height:1.05;letter-spacing:.01em}
+.ttl p{margin:2px 0 0;font-size:.78rem;font-weight:500;opacity:.78;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conn{flex:none;display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.conn i{width:10px;height:10px;border-radius:50%;background:#8a8f9c;display:block}
+.conn[data-s="on"] i{background:var(--ok)}
+.conn[data-s="off"] i{background:var(--bad)}
+.searchbar{padding-block:0 12px}
+.search{display:flex;align-items:center;gap:8px;background:var(--surface);border-radius:10px;padding:0 6px 0 12px;height:48px}
+.search svg{flex:none;width:20px;height:20px;color:var(--muted)}
+.search input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:1.05rem;color:var(--ink);height:100%;outline:none}
+.search button{flex:none;width:40px;height:40px;border:0;background:transparent;color:var(--muted);font-size:1.4rem;border-radius:8px;cursor:pointer}
+.search:focus-within{outline:3px solid var(--accent);outline-offset:0}
+
+main{padding-block:12px calc(88px + env(safe-area-inset-bottom,0px))}
+.status{font-size:.82rem;color:var(--muted);margin:0 0 10px}
+.status b{color:var(--ink)}
+
+/* lista */
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;width:100%;min-height:68px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px 10px 14px;cursor:pointer;color:inherit;font:inherit;position:relative;overflow:hidden}
+.item::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:transparent}
+.item.low::before{background:var(--warn)}
+.item.zero::before{background:var(--bad)}
+.item:active{background:#f4f6fa}
+.iname{min-width:0;font-weight:600;font-size:1.02rem;line-height:1.2;overflow-wrap:anywhere}
+.imeta{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:4px;font-size:.78rem;color:var(--muted)}
+.qty{text-align:right;font-family:var(--font-num);font-weight:700;font-size:1.3rem;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.qty small{display:block;font-family:var(--font);font-size:.7rem;font-weight:500;color:var(--muted);margin-top:4px}
+.chip{display:inline-flex;align-items:center;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.04em}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.chip.top{background:#e3ecfa;color:var(--accent)}
+.sec{font-family:var(--font-cond);font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:18px 2px 8px}
+.sec:first-child{margin-top:4px}
+.empty{background:var(--surface);border:1.5px dashed var(--line);border-radius:var(--r);padding:24px 16px;text-align:center;color:var(--muted)}
+.skel{height:68px;border-radius:var(--r);background:linear-gradient(90deg,#e3e6ec,#f1f3f6,#e3e6ec);background-size:200% 100%}
+@media (prefers-reduced-motion:no-preference){.skel{animation:sh 1.2s linear infinite}@keyframes sh{to{background-position:-200% 0}}}
+
+/* saldo */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;min-width:0}
+.kpi b{display:block;font-family:var(--font-num);font-size:1.35rem;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi span{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.kpi.s b{color:var(--bad)} .kpi.e b{color:var(--ok)}
+.rows{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line);min-height:48px}
+.row:last-child{border-bottom:0}
+.row .n{font-family:var(--font-num);font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.row .nm{min-width:0;overflow-wrap:anywhere}
+.mov{grid-template-columns:auto 1fr auto}
+.mov .tp{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:1.1rem}
+.mov .tp.saida{background:var(--bad-soft);color:var(--bad)}
+.mov .tp.entrada{background:var(--ok-soft);color:var(--ok)}
+.mov .tp.ajuste{background:var(--warn-soft);color:var(--warn)}
+.mov .sub{font-size:.76rem;color:var(--muted)}
+.n.saida{color:var(--bad)} .n.entrada{color:var(--ok)} .n.ajuste{color:var(--warn)}
+
+/* navegação no rodapé */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs .wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-block:8px}
+nav.tabs button{height:var(--tap);border:0;border-radius:10px;background:transparent;color:var(--muted);font-family:var(--font-cond);font-weight:700;font-size:1.05rem;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button[aria-selected="true"]{background:var(--brand-ink);color:var(--brand)}
+
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* folha de registro */
+.scrim{position:fixed;inset:0;background:rgba(10,14,22,.55);z-index:20}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:21;background:var(--surface);border-radius:18px 18px 0 0;max-height:calc(100% - env(safe-area-inset-top,0px) - 8px);overflow-y:auto;box-shadow:0 -10px 30px rgba(0,0,0,.25)}
+.sheet .wrap{display:flex;flex-direction:column;gap:14px;padding-block:14px calc(14px + env(safe-area-inset-bottom,0px))}
+.grab{width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto}
+.sh-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.sh-h h2{margin:0;font-size:1.2rem;line-height:1.2;overflow-wrap:anywhere}
+.sh-h p{margin:3px 0 0;font-size:.85rem;color:var(--muted)}
+.sh-h .now{text-align:right;flex:none}
+.sh-h .now b{display:block;font-family:var(--font-num);font-size:1.4rem;font-variant-numeric:tabular-nums}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--bg);padding:4px;border-radius:12px}
+.seg button{height:50px;border:0;border-radius:9px;background:transparent;color:var(--muted);font-family:var(--font-cond);font-weight:700;font-size:1.02rem;text-transform:uppercase;letter-spacing:.04em;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.seg button[aria-pressed="true"][data-t="saida"]{color:var(--bad)}
+.seg button[aria-pressed="true"][data-t="entrada"]{color:var(--ok)}
+.seg button[aria-pressed="true"][data-t="ajuste"]{color:var(--warn)}
+.lbl{display:block;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:6px}
+.stepper{display:grid;grid-template-columns:var(--tap) 1fr var(--tap);gap:8px}
+.stepper button{height:64px;font-size:2rem;font-weight:500;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.stepper button:active{background:var(--line)}
+.stepper input{height:64px;width:100%;min-width:0;font-family:var(--font-num);font-size:2rem;font-weight:700;text-align:center;border:2px solid var(--ink);border-radius:12px;background:var(--surface);color:var(--ink);font-variant-numeric:tabular-nums}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.quick button{height:42px;border-radius:9px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font-family:var(--font-num);font-weight:700;font-size:.95rem;cursor:pointer}
+.prev{display:flex;justify-content:space-between;align-items:center;background:var(--bg);border-radius:10px;padding:10px 14px;font-size:.92rem}
+.prev b{font-family:var(--font-num);font-size:1.15rem;font-variant-numeric:tabular-nums}
+.prev.neg{background:var(--bad-soft);color:var(--bad)}
+.field input{width:100%;height:50px;font:inherit;font-size:1.05rem;padding:0 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+.actions{display:grid;grid-template-columns:1fr 2fr;gap:8px}
+.btn{height:var(--tap);border:0;border-radius:12px;font-family:var(--font-cond);font-weight:700;font-size:1.15rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:var(--bg);color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--brand-ink);color:#fff;padding:12px 18px;border-radius:12px;font-weight:500;z-index:30;width:max-content;max-width:calc(100% - 32px);text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.toast.ok{border-left:6px solid var(--brand)}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .16s ease-out}@keyframes up{from{transform:translateY(40px)}}}
+@media (max-height:600px){.stepper button,.stepper input{height:54px}.btn{height:50px}}
+</style>
+
+<header>
+  <div class="wrap top">
+    <div class="mark" aria-hidden="true">T2</div>
+    <div class="ttl">
+      <h1>Insumos</h1>
+      <p>BRXSP24 · entradas e saídas</p>
+    </div>
+    <div class="conn" id="conn" data-s="" aria-live="polite"><i></i><span id="conn-t">Conectando</span></div>
+  </div>
+  <div class="wrap searchbar" id="searchbar">
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input id="busca" type="search" placeholder="Buscar insumo" autocomplete="off" enterkeyhint="search" aria-label="Buscar insumo">
+      <button type="button" id="limpa" aria-label="Limpar busca" hidden>×</button>
+    </label>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="tab-registrar">
+    <p class="status" id="status">Carregando os insumos…</p>
+    <div class="list" id="lista">
+      <div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div>
+    </div>
+  </section>
+
+  <section id="tab-saldo" hidden>
+    <div class="sec">Hoje no T2</div>
+    <div class="kpis">
+      <div class="kpi s"><b id="k-s">0</b><span>Saídas</span></div>
+      <div class="kpi e"><b id="k-e">0</b><span>Entradas</span></div>
+      <div class="kpi"><b id="k-c">0</b><span>Contagens</span></div>
+    </div>
+    <div class="sec">Saldo atual</div>
+    <div class="rows" id="saldo"></div>
+    <div class="sec">Últimas movimentações</div>
+    <div class="rows" id="movs"></div>
+  </section>
+</main>
+
+<nav class="tabs" role="tablist" aria-label="Seções">
+  <div class="wrap">
+    <button role="tab" data-tab="registrar" aria-selected="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h3M4 12h3M4 17h3M10 7h10M10 12h10M10 17h10"/></svg>
+      Registrar
+    </button>
+    <button role="tab" data-tab="saldo" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      Saldo
+    </button>
+  </div>
+</nav>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="s-nome">
+  <div class="wrap">
+    <div class="grab" aria-hidden="true"></div>
+    <div class="sh-h">
+      <div><h2 id="s-nome"></h2><p id="s-sub">Turno T2</p></div>
+      <div class="now"><b id="s-saldo">0</b><p id="s-un">Uni em estoque</p></div>
+    </div>
+    <div class="seg" role="group" aria-label="Tipo de registro">
+      <button type="button" data-t="saida" aria-pressed="true">Saída</button>
+      <button type="button" data-t="entrada" aria-pressed="false">Entrada</button>
+      <button type="button" data-t="ajuste" aria-pressed="false">Contagem</button>
+    </div>
+    <div>
+      <label class="lbl" for="s-qtd" id="s-qtd-label">Quantidade (Uni)</label>
+      <div class="stepper">
+        <button type="button" id="s-menos" aria-label="Menos um">−</button>
+        <input id="s-qtd" type="number" min="0" inputmode="numeric" value="1">
+        <button type="button" id="s-mais" aria-label="Mais um">+</button>
+      </div>
+      <div class="quick" id="quick">
+        <button type="button" data-q="5">+5</button>
+        <button type="button" data-q="10">+10</button>
+        <button type="button" data-q="50">+50</button>
+        <button type="button" data-q="100">+100</button>
+      </div>
+    </div>
+    <div class="prev" id="s-prev"><span>Saldo depois</span><b>0</b></div>
+    <div class="field">
+      <label class="lbl" for="s-quem">Quem está registrando</label>
+      <input id="s-quem" placeholder="Seu nome" autocomplete="name" enterkeyhint="done">
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="s-cancel" type="button">Voltar</button>
+      <button class="btn" id="s-ok" type="button">Confirmar</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+(function(){
+  const TURNO="T2";
+  const $=s=>document.querySelector(s);
+  const store={
+    get(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},
+    set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  };
+  let db=null, itens=[], movs=[], aba="registrar", sel=null, tipo="saida", podeEscrever=true, carregou=false;
+
+  const nf=n=>new Intl.NumberFormat("pt-BR").format(n);
+  const lower=s=>String(s||"").toLocaleLowerCase("pt-BR");
+  const semAcento=s=>lower(s).normalize("NFD").replace(/[̀-ͯ]/g,"");
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const diaLocal=ts=>{const d=new Date(ts);return d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate()};
+  const hora=ts=>{const d=new Date(ts);const hoje=diaLocal(Date.now())===diaLocal(ts);return (hoje?"hoje ":d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})+" ")+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
+  const un=i=>(i&&i.unidade)||"Uni";
+  function estado(i){const s=i.saldo||0;if(s<=0)return"zero";if(i.minimo&&s<i.minimo)return"low";return""}
+  function toast(t,ok){const el=$("#toast");el.textContent=t;el.className="toast"+(ok?" ok":"");el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,2600)}
+  function vibra(){try{navigator.vibrate&&navigator.vibrate(40)}catch(e){}}
+
+  function giro(){const lim=Date.now()-7*864e5,g={};for(const m of movs){if(m.tipo==="saida"&&m.ts>=lim)g[m.insumoId]=(g[m.insumoId]||0)+1}return g}
+  function ordenados(){
+    const g=giro();
+    return itens.filter(i=>i.ativo!==false).slice().sort((a,b)=>(g[b.id]||0)-(g[a.id]||0)||(a.prioridade||99)-(b.prioridade||99)||lower(a.nome).localeCompare(lower(b.nome),"pt-BR"));
+  }
+
+  function render(){
+    document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.tab===aba)));
+    $("#tab-registrar").hidden=aba!=="registrar";
+    $("#tab-saldo").hidden=aba!=="saldo";
+    $("#searchbar").hidden=aba!=="registrar";
+    renderLista();renderSaldo();
+  }
+
+  function itemHTML(i,g,top){
+    const st=estado(i),n=g[i.id]||0;
+    const chips=(st==="zero"?'<span class="chip bad">zerado</span>':st==="low"?'<span class="chip warn">baixo</span>':"")+(top?'<span class="chip top">mais retirado</span>':"");
+    const meta=n?`${n} ${n>1?"retiradas":"retirada"} em 7 dias`:"sem retiradas em 7 dias";
+    return `<button class="item ${st}" data-id="${esc(i.id)}"><div class="iname">${esc(lower(i.nome))}<div class="imeta">${chips}<span>${meta}</span></div></div><div class="qty">${nf(i.saldo||0)}<small>${esc(un(i))}</small></div></button>`;
+  }
+  function renderLista(){
+    const el=$("#lista");
+    if(!carregou) return;
+    if(!db){el.innerHTML='<div class="empty">Sem conexão com os dados.<br>Abra o link logado na sua conta do Claude.</div>';return}
+    if(!itens.length){el.innerHTML='<div class="empty">Nenhum insumo cadastrado ainda.</div>';return}
+    const q=semAcento($("#busca").value.trim());
+    const g=giro(), arr=ordenados().filter(i=>!q||semAcento(i.nome).includes(q));
+    if(!arr.length){el.innerHTML=`<div class="empty">Nenhum insumo com “${esc($("#busca").value.trim())}”.</div>`;return}
+    if(q){el.innerHTML=arr.map(i=>itemHTML(i,g,false)).join("");return}
+    const top=arr.filter(i=>g[i.id]).slice(0,5), resto=arr.filter(i=>!top.includes(i));
+    el.innerHTML=(top.length?'<div class="sec">Mais retirados</div>'+top.map(i=>itemHTML(i,g,false)).join("")+'<div class="sec">Todos os insumos</div>':"")+resto.map(i=>itemHTML(i,g,false)).join("");
+  }
+
+  function renderSaldo(){
+    const hoje=diaLocal(Date.now());
+    const doDia=movs.filter(m=>m.turno===TURNO&&diaLocal(m.ts)===hoje);
+    $("#k-s").textContent=nf(doDia.filter(m=>m.tipo==="saida").length);
+    $("#k-e").textContent=nf(doDia.filter(m=>m.tipo==="entrada").length);
+    $("#k-c").textContent=nf(doDia.filter(m=>m.tipo==="ajuste").length);
+    const arr=itens.filter(i=>i.ativo!==false).slice().sort((a,b)=>lower(a.nome).localeCompare(lower(b.nome),"pt-BR"));
+    $("#saldo").innerHTML=arr.length?arr.map(i=>{const st=estado(i);return `<div class="row"><span class="nm">${esc(lower(i.nome))} ${st==="zero"?'<span class="chip bad">zerado</span>':st==="low"?'<span class="chip warn">baixo</span>':""}</span><span class="n">${nf(i.saldo||0)} <small style="font-weight:500;color:var(--muted)">${esc(un(i))}</small></span></div>`}).join(""):'<div class="row"><span class="nm" style="color:var(--muted)">Os saldos aparecem aqui assim que os dados carregarem.</span></div>';
+    const nome=id=>{const i=itens.find(x=>x.id===id);return i?lower(i.nome):"item removido"};
+    const sinal={saida:"−",entrada:"+",ajuste:"="}, rot={saida:"Saída",entrada:"Entrada",ajuste:"Contagem"};
+    const ult=movs.filter(m=>m.turno===TURNO).slice(0,30);
+    $("#movs").innerHTML=ult.length?ult.map(m=>`<div class="row mov"><span class="tp ${m.tipo}" aria-label="${rot[m.tipo]||m.tipo}">${sinal[m.tipo]||"·"}</span><span class="nm">${esc(nome(m.insumoId))}<div class="sub">${hora(m.ts)}${m.quem?" · "+esc(m.quem):""}</div></span><span class="n ${m.tipo}">${m.tipo==="ajuste"?nf(m.contado):(m.tipo==="saida"?"−":"+")+nf(m.qtd)}</span></div>`).join(""):'<div class="row"><span class="nm" style="color:var(--muted)">Nenhum registro do T2 ainda. Toque num insumo em Registrar para lançar o primeiro.</span></div>';
+  }
+
+  // folha
+  function abrir(id){
+    sel=itens.find(i=>i.id===id); if(!sel) return;
+    tipo="saida"; $("#s-qtd").value=1; $("#s-quem").value=store.get("quem","");
+    $("#s-nome").textContent=lower(sel.nome);
+    $("#scrim").hidden=false; $("#sheet").hidden=false; atualizaSheet();
+  }
+  function fechar(){$("#scrim").hidden=true;$("#sheet").hidden=true;sel=null}
+  function qtd(){return Math.max(0,parseInt($("#s-qtd").value,10)||0)}
+  function atualizaSheet(){
+    if(!sel) return;
+    document.querySelectorAll(".seg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.t===tipo)));
+    const u=un(sel), s=sel.saldo||0, q=qtd();
+    $("#s-saldo").textContent=nf(s); $("#s-un").textContent=u+" em estoque";
+    $("#s-qtd-label").textContent=tipo==="ajuste"?`Quantidade contada (${u})`:tipo==="entrada"?`Quantidade que entrou (${u})`:`Quantidade retirada (${u})`;
+    $("#quick").hidden=tipo==="ajuste";
+    const novo=tipo==="saida"?s-q:tipo==="entrada"?s+q:q;
+    const p=$("#s-prev");
+    p.className="prev"+(novo<0?" neg":"");
+    p.innerHTML=novo<0?`<span>Saída maior que o saldo</span><b>${nf(novo)}</b>`:`<span>Saldo depois</span><b>${nf(novo)} ${esc(u)}</b>`;
+    $("#s-ok").disabled=!podeEscrever||(tipo!=="ajuste"&&q<=0)||novo<0;
+    $("#s-ok").textContent=tipo==="saida"?"Confirmar saída":tipo==="entrada"?"Confirmar entrada":"Salvar contagem";
+  }
+  async function confirmar(){
+    if(!sel||!db||$("#s-ok").disabled) return;
+    const q=qtd(), quem=$("#s-quem").value.trim();
+    store.set("quem",quem);
+    const s=sel.saldo||0, novo=tipo==="saida"?s-q:tipo==="entrada"?s+q:q;
+    const mov={insumoId:sel.id,tipo,qtd:tipo==="ajuste"?novo-s:q,turno:TURNO,quem,ts:Date.now()};
+    if(tipo==="ajuste") mov.contado=q;
+    const item=sel, nome=lower(sel.nome), t=tipo;
+    $("#s-ok").disabled=true;
+    try{
+      await db.collection("movimentos").add(mov);
+      await db.doc("insumos/"+item.id).update({saldo:novo});
+      fechar(); vibra();
+      const u=un(item);
+      toast(t==="saida"?`Saída: ${nf(q)} ${u} de ${nome}`:t==="entrada"?`Entrada: ${nf(q)} ${u} de ${nome}`:`Contagem salva: ${nome} = ${nf(q)} ${u}`,true);
+    }catch(e){erroEscrita(e);$("#s-ok").disabled=false}
+  }
+  function erroEscrita(e){
+    if(e&&(e.code==="invalid_argument"||e.code==="permission_denied"||e.code==="not_granted")){podeEscrever=false;atualizaSheet();toast("Seu acesso é só de leitura. Peça acesso de contribuidor ao responsável.")}
+    else if(e&&e.code==="quota_exceeded") toast("O banco do app está cheio. Avise o responsável.");
+    else toast("Não salvou. Confira o sinal do Wi-Fi e tente de novo.");
+  }
+
+  // eventos
+  document.querySelector("nav.tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;aba=b.dataset.tab;render();window.scrollTo(0,0)});
+  $("#busca").addEventListener("input",()=>{$("#limpa").hidden=!$("#busca").value;renderLista()});
+  $("#busca").addEventListener("keydown",e=>{if(e.key==="Enter"){const f=$("#lista .item");if(f){e.preventDefault();$("#busca").blur();abrir(f.dataset.id)}}});
+  $("#limpa").addEventListener("click",()=>{$("#busca").value="";$("#limpa").hidden=true;renderLista()});
+  $("#lista").addEventListener("click",e=>{const b=e.target.closest(".item");if(b)abrir(b.dataset.id)});
+  document.querySelector(".seg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b||!sel)return;tipo=b.dataset.t;$("#s-qtd").value=tipo==="ajuste"?(sel.saldo||0):1;atualizaSheet()});
+  $("#s-qtd").addEventListener("input",atualizaSheet);
+  $("#s-qtd").addEventListener("focus",e=>{try{e.target.select()}catch(_){}});
+  $("#s-mais").addEventListener("click",()=>{$("#s-qtd").value=qtd()+1;atualizaSheet()});
+  $("#s-menos").addEventListener("click",()=>{$("#s-qtd").value=Math.max(0,qtd()-1);atualizaSheet()});
+  $("#quick").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const atual=qtd();$("#s-qtd").value=(atual===1&&!$("#quick").dataset.used?0:atual)+parseInt(b.dataset.q,10);$("#quick").dataset.used="1";atualizaSheet()});
+  $("#s-qtd").addEventListener("keydown",e=>{if(e.key==="Enter")confirmar()});
+  $("#s-quem").addEventListener("keydown",e=>{if(e.key==="Enter")confirmar()});
+  $("#s-cancel").addEventListener("click",fechar); $("#scrim").addEventListener("click",fechar);
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&sel)fechar()});
+  $("#s-ok").addEventListener("click",confirmar);
+  const _abrir=abrir; abrir=function(id){delete $("#quick").dataset.used;_abrir(id)};
+
+  function conn(s,t){$("#conn").dataset.s=s;$("#conn-t").textContent=t}
+
+  render();
+
+  (async()=>{
+    const c=window.claude;
+    db=c&&c.use?await c.use("db"):null;
+    carregou=true;
+    if(!db){conn("off","Offline");$("#status").textContent="Os dados não carregaram nesta tela.";render();return}
+    conn("on","Online");
+    $("#status").innerHTML="Toque no insumo para registrar. <b>Mais retirados primeiro.</b>";
+    try{const u=await c.use("user");const w=u&&u.can?await u.can("data.write"):null;if(w===false){podeEscrever=false;$("#status").textContent="Acesso só de leitura: você vê os saldos, mas não registra."}}catch(e){}
+    db.collection("insumos").onSnapshot(s=>{itens=s.docs.map(d=>Object.assign({id:d.id},d.data()));if(sel){const n=itens.find(i=>i.id===sel.id);if(n){sel=n;atualizaSheet()}}conn("on","Online");render()},()=>{conn("off","Sem conexão");$("#status").textContent="Conexão perdida. Recarregue a página."});
+    db.collection("movimentos").orderBy("ts","desc").limit(1000).onSnapshot(s=>{movs=s.docs.map(d=>Object.assign({id:d.id},d.data()));render()},()=>{});
+  })();
+})();
+</script>
+
+</body></html>
