@@ -1,4 +1,3 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Controle de Insumos</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="theme-color" content="#ffe600">
@@ -279,7 +278,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
     if(!db){el.innerHTML='<div class="empty">Sem conexão com os dados.<br>Abra o link logado na sua conta do Claude.</div>';return}
     if(!itens.length){el.innerHTML='<div class="empty">Nenhum insumo cadastrado ainda.</div>';return}
     const q=semAcento($("#busca").value.trim());
-    const g=giro(), arr=ordenados().filter(i=>!q||semAcento(i.nome).includes(q));
+    const g=giro(), arr=ordenados().filter(i=>!q||semAcento(i.nome).includes(q)||lower(i.id)===q.replace(/^ins:/,""));
     if(!arr.length){el.innerHTML=`<div class="empty">Nenhum insumo com “${esc($("#busca").value.trim())}”.</div>`;return}
     if(q){el.innerHTML=arr.map(i=>itemHTML(i,g,false)).join("");return}
     const top=arr.filter(i=>g[i.id]).slice(0,5), resto=arr.filter(i=>!top.includes(i));
@@ -349,7 +348,11 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
   // eventos
   document.querySelector("nav.tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;aba=b.dataset.tab;render();window.scrollTo(0,0)});
   $("#busca").addEventListener("input",()=>{$("#limpa").hidden=!$("#busca").value;renderLista()});
-  $("#busca").addEventListener("keydown",e=>{if(e.key==="Enter"){const f=$("#lista .item");if(f){e.preventDefault();$("#busca").blur();abrir(f.dataset.id)}}});
+  // leitura do HF: o QR traz o id do insumo e o coletor "digita" o código + Enter
+  function porCodigo(v){const c=lower(v).trim().replace(/^ins:/,"");return itens.find(i=>i.ativo!==false&&lower(i.id)===c)}
+  $("#busca").addEventListener("keydown",e=>{if(e.key!=="Enter")return;e.preventDefault();const lido=porCodigo($("#busca").value);if(lido){$("#busca").value="";$("#limpa").hidden=true;$("#busca").blur();renderLista();abrir(lido.id);return}const f=$("#lista .item");if(f){$("#busca").blur();abrir(f.dataset.id)}});
+  // bipou sem o campo de busca em foco: manda a leitura para a busca
+  document.addEventListener("keydown",e=>{if(sel||aba!=="registrar"||e.ctrlKey||e.altKey||e.metaKey||e.key.length!==1)return;const a=document.activeElement;if(a&&(a.tagName==="INPUT"||a.tagName==="TEXTAREA"))return;$("#busca").focus()},true);
   $("#limpa").addEventListener("click",()=>{$("#busca").value="";$("#limpa").hidden=true;renderLista()});
   $("#lista").addEventListener("click",e=>{const b=e.target.closest(".item");if(b)abrir(b.dataset.id)});
   document.querySelector(".seg").addEventListener("click",e=>{const b=e.target.closest("button");if(!b||!sel)return;tipo=b.dataset.t;$("#s-qtd").value=tipo==="ajuste"?(sel.saldo||0):1;atualizaSheet()});
@@ -382,5 +385,3 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
   })();
 })();
 </script>
-
-</body></html>

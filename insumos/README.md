@@ -22,3 +22,9 @@ Os dados ficam no banco do artifact (`window.claude.use("db")`):
 | `movimentos/{auto}` | `insumoId`, `tipo` (`saida`/`entrada`/`ajuste`), `qtd`, `contado?`, `turno`, `quem`, `ts` |
 
 > O `index.html` só funciona com dados dentro do Claude (artifact). Se abrir o arquivo localmente, ele mostra "Offline".
+
+## Etiquetas QR (bipar com o HF)
+
+- PDF pronto para imprimir: [`etiquetas/etiquetas-qr.pdf`](etiquetas/etiquetas-qr.pdf), em A4 com 15 por folha. A primeira etiqueta abre o app.
+- O QR de cada insumo traz `INS:<id>`. No app, na aba **Registrar**, basta bipar: o insumo abre direto na folha de registro.
+- Ao cadastrar um insumo novo, gere o PDF de novo: `python3 tools/gerar_etiquetas.py backup/insumos.json etiquetas/etiquetas-qr.pdf`
