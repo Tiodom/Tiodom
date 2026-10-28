@@ -23,8 +23,15 @@ Os dados ficam no banco do artifact (`window.claude.use("db")`):
 
 > O `index.html` só funciona com dados dentro do Claude (artifact). Se abrir o arquivo localmente, ele mostra "Offline".
 
-## Etiquetas QR (bipar com o HF)
+## AppSheet + Google Sheets (versão para o HF)
 
-- PDF pronto para imprimir: [`etiquetas/etiquetas-qr.pdf`](etiquetas/etiquetas-qr.pdf), em A4 com 15 por folha. A primeira etiqueta abre o app.
-- O QR de cada insumo traz `INS:<id>`. No app, na aba **Registrar**, basta bipar: o insumo abre direto na folha de registro.
+O app do Claude roda dentro do domínio claude.ai e o HF não consegue bipar nele. A versão para o turno é no **AppSheet**, com os dados na planilha **Controle de Insumos T2** do Google Drive.
+
+- Passo a passo para montar o app: [`appsheet/PASSO-A-PASSO.md`](appsheet/PASSO-A-PASSO.md)
+- Cópia da planilha: [`appsheet/Controle_de_Insumos_T2.xlsx`](appsheet/Controle_de_Insumos_T2.xlsx)
+
+## Etiquetas QR
+
+- PDF pronto para imprimir: [`etiquetas/etiquetas-qr.pdf`](etiquetas/etiquetas-qr.pdf), em A4 com 15 por folha.
+- O QR traz só o **ID** do insumo (ex.: `fita-adesiva`), que é a chave da aba Insumos e é o que o AppSheet reconhece.
 - Ao cadastrar um insumo novo, gere o PDF de novo: `python3 tools/gerar_etiquetas.py backup/insumos.json etiquetas/etiquetas-qr.pdf`

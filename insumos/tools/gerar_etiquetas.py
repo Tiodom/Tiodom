@@ -1,7 +1,8 @@
 """Gera o PDF de etiquetas QR dos insumos (A4, 3x5 por folha).
 
 Uso: python3 gerar_etiquetas.py backup/insumos.json etiquetas/etiquetas-qr.pdf
-O QR traz "INS:<id>"; o app abre o insumo direto quando o HF bipa.
+O QR traz só o ID do insumo (a chave da aba Insumos), que o AppSheet
+reconhece ao bipar no campo Insumo.
 """
 import json, sys
 from reportlab.lib.pagesizes import A4
@@ -11,7 +12,6 @@ from reportlab.graphics.barcode import qr
 from reportlab.graphics.shapes import Drawing
 from reportlab.graphics import renderPDF
 
-APP = "https://claude.ai/artifact/ThvGpgJm43bdjrFrZTXEGG"
 COLS, ROWS = 3, 5
 MARGEM = 10 * mm
 
@@ -38,8 +38,7 @@ def quebra(c, texto, largura, fonte, tam):
 
 def main(entrada, saida):
     itens = json.load(open(entrada, encoding="utf8"))
-    etiquetas = [("abrir o app de insumos", APP, "link do app")]
-    etiquetas += sorted(((v["nome"], "INS:" + k, k) for k, v in itens.items() if v.get("ativo", True)),
+    etiquetas = sorted(((v["nome"], k, k) for k, v in itens.items() if v.get("ativo", True)),
                         key=lambda e: e[0])
     W, H = A4
     cw, ch = (W - 2 * MARGEM) / COLS, (H - 2 * MARGEM) / ROWS
